@@ -30,13 +30,17 @@ const AuctionList = () => {
       while (true) {
         try {
           const details = await getAuctionDetails(provider, id);
-          if (details?.name) {
-            auctionData.push(details);
+          if (
+            !details ||
+            details.seller === "0x0000000000000000000000000000000000000000"
+          ) {
+            break;
           }
+          auctionData.push(details);
           id++;
         } catch (err) {
           console.error(`Error fetching auction ${id}:`, err);
-          break; // Stop when an invalid auction ID is encountered
+          break;
         }
       }
 
@@ -55,7 +59,6 @@ const AuctionList = () => {
       }
       await endAuction(signer, auctionId);
       alert("Auction end requested. Please wait for transaction confirmation.");
-      // Refresh auctions after a successful transaction
       window.location.reload();
     } catch (err) {
       console.error("Error ending auction:", err);
