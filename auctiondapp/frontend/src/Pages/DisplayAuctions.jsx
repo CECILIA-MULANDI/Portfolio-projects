@@ -24,29 +24,24 @@ const AuctionList = () => {
 
       setLoading(true);
       setError(null);
-      try {
-        const contract = getAuctionDetails(provider);
-        const auctionCount = await contract.getAuctionCount(); // Add this function in the contract if needed
-        const auctionData = [];
+      const auctionData = [];
+      let id = 0;
 
-        for (let id = 0; id < auctionCount; id++) {
-          try {
-            const details = await getAuctionDetails(provider, id);
-            if (details && details.name) {
-              auctionData.push(details);
-            }
-          } catch (err) {
-            console.error(`Error fetching auction ${id}:`, err);
+      while (true) {
+        try {
+          const details = await getAuctionDetails(provider, id);
+          if (details?.name) {
+            auctionData.push(details);
           }
+          id++;
+        } catch (err) {
+          console.error(`Error fetching auction ${id}:`, err);
+          break; // Stop when an invalid auction ID is encountered
         }
-
-        setAuctions(auctionData);
-      } catch (err) {
-        console.error("Error fetching auctions:", err);
-        setError("Failed to load auctions.");
-      } finally {
-        setLoading(false);
       }
+
+      setAuctions(auctionData);
+      setLoading(false);
     };
 
     fetchAuctions();
@@ -121,9 +116,9 @@ const AuctionList = () => {
             padding: "20px",
           }}
         >
-          {auctions.map((auction, index) => (
+          {auctions.map((auction) => (
             <div
-              key={index}
+              key={auction.id}
               style={{
                 border: "1px solid #ddd",
                 borderRadius: "10px",
@@ -147,7 +142,7 @@ const AuctionList = () => {
               </p>
 
               <button
-                onClick={() => navigate(`/place-bid/${index}`)}
+                onClick={() => navigate(`/place-bid/${auction.id}`)}
                 style={{
                   backgroundColor: "#007bff",
                   color: "white",
@@ -162,7 +157,7 @@ const AuctionList = () => {
                 Place Bid
               </button>
               <button
-                onClick={() => handleEndAuction(index)}
+                onClick={() => handleEndAuction(auction.id)}
                 style={{
                   backgroundColor: "red",
                   color: "white",
