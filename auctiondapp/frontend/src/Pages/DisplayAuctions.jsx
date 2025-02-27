@@ -10,33 +10,114 @@ import { useNavigate } from "react-router-dom";
 const AuctionList = () => {
   const { provider, signer } = useContext(Web3Context);
   const [auctions, setAuctions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAuctions = async () => {
-      const auctionIds = [0, 1, 2]; // Replace with actual logic
-      const auctionData = await Promise.all(
-        auctionIds.map((id) => getAuctionDetails(provider, id))
-      );
-      setAuctions(auctionData);
+      if (!provider) {
+        setError("Web3 provider not connected");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        // Start with valid auction IDs - this is likely the issue
+        // Your contract might not have auctions with IDs 0,1,2
+        // Adjust this based on your contract's actual data
+        const auctionIds = [0]; // Start with just one known valid ID
+
+        const auctionData = [];
+
+        for (const id of auctionIds) {
+          try {
+            const details = await getAuctionDetails(provider, id);
+            // Validate that the returned data has required properties
+            if (details && details.name) {
+              auctionData.push(details);
+            }
+          } catch (err) {
+            console.error(`Error fetching auction ${id}:`, err);
+            // Continue with other auctions instead of failing completely
+          }
+        }
+
+        setAuctions(auctionData);
+      } catch (err) {
+        console.error("Error in auction fetching:", err);
+        setError(
+          "Failed to load auctions. Please check your connection and contract."
+        );
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAuctions();
   }, [provider]);
 
   const handleEndAuction = async (auctionId) => {
-    await endAuction(signer, auctionId);
+    try {
+      if (!signer) {
+        alert("Please connect your wallet to end an auction");
+        return;
+      }
+      await endAuction(signer, auctionId);
+      alert("Auction end requested. Please wait for transaction confirmation.");
+      // Refresh auctions after a successful transaction
+      window.location.reload();
+    } catch (err) {
+      console.error("Error ending auction:", err);
+      alert("Failed to end auction. See console for details.");
+    }
   };
 
   const handleWithdrawFunds = async () => {
-    await withdrawFunds(signer);
+    try {
+      if (!signer) {
+        alert("Please connect your wallet to withdraw funds");
+        return;
+      }
+      await withdrawFunds(signer);
+      alert("Withdrawal requested. Please wait for transaction confirmation.");
+    } catch (err) {
+      console.error("Error withdrawing funds:", err);
+      alert("Failed to withdraw funds. See console for details.");
+    }
   };
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
       <h2>Active Auctions</h2>
-      {auctions.length === 0 ? (
-        <p>No auctions found.</p>
+
+      {loading ? (
+        <p>Loading auctions...</p>
+      ) : error ? (
+        <div style={{ color: "red", margin: "20px 0" }}>
+          <p>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              backgroundColor: "#007bff",
+              color: "white",
+              padding: "10px",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              marginTop: "10px",
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      ) : auctions.length === 0 ? (
+        <p>
+          No auctions found. There might not be any active auctions in the
+          contract.
+        </p>
       ) : (
         <div
           style={{
