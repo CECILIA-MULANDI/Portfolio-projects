@@ -20,7 +20,7 @@ contract AuctionContract {
     uint256 public auctionCounter;
     bool public stopped;
     address public owner;
-    uint256 public constant MINIMUM_INCREMENT = 0.1 ether;
+    uint256 public constant MINIMUM_INCREMENT = 0.00001 ether;
 
     // Events
     event AuctionCreated(

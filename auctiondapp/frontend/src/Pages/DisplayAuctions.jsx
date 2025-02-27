@@ -25,32 +25,25 @@ const AuctionList = () => {
       setLoading(true);
       setError(null);
       try {
-        // Start with valid auction IDs - this is likely the issue
-        // Your contract might not have auctions with IDs 0,1,2
-        // Adjust this based on your contract's actual data
-        const auctionIds = [0]; // Start with just one known valid ID
-
+        const contract = getAuctionDetails(provider);
+        const auctionCount = await contract.getAuctionCount(); // Add this function in the contract if needed
         const auctionData = [];
 
-        for (const id of auctionIds) {
+        for (let id = 0; id < auctionCount; id++) {
           try {
             const details = await getAuctionDetails(provider, id);
-            // Validate that the returned data has required properties
             if (details && details.name) {
               auctionData.push(details);
             }
           } catch (err) {
             console.error(`Error fetching auction ${id}:`, err);
-            // Continue with other auctions instead of failing completely
           }
         }
 
         setAuctions(auctionData);
       } catch (err) {
-        console.error("Error in auction fetching:", err);
-        setError(
-          "Failed to load auctions. Please check your connection and contract."
-        );
+        console.error("Error fetching auctions:", err);
+        setError("Failed to load auctions.");
       } finally {
         setLoading(false);
       }
