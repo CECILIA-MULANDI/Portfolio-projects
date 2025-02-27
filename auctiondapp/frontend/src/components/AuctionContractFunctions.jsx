@@ -94,8 +94,13 @@ export const withdrawFunds = async (signer) => {
 
 export const getAuctionDetails = async (provider, auctionId) => {
   try {
+    console.log("Getting contract with provider:", provider);
     const contract = getAuctionContract(provider);
+    console.log("Fetching auction ID:", auctionId);
     const auction = await contract.getAuction(auctionId);
+    console.log("Raw auction data:", auction);
+
+    // Make sure BigNumber values are properly formatted
     return {
       seller: auction[0],
       name: auction[1],
@@ -103,7 +108,7 @@ export const getAuctionDetails = async (provider, auctionId) => {
       startingPrice: ethers.utils.formatEther(auction[3]),
       highestBid: ethers.utils.formatEther(auction[4]),
       highestBidder: auction[5],
-      endTime: new Date(auction[6] * 1000).toLocaleString(),
+      endTime: new Date(Number(auction[6]) * 1000).toLocaleString(),
       ended: auction[7],
     };
   } catch (error) {
