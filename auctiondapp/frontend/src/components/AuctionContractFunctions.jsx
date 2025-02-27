@@ -1,8 +1,7 @@
 import { ethers } from "ethers";
 import auctionABI from "../abi.json"; // Import ABI
 
-const CONTRACT_ADDRESS = "0x734cF41a74666856e46F185830e67eC5dF2c6BAC"; // Replace with actual contract address
-
+const CONTRACT_ADDRESS = "0x04A832C2A8c8a571F81CFFE1218e1067bDCB6614";
 export const getAuctionContract = (signerOrProvider) => {
   return new ethers.Contract(CONTRACT_ADDRESS, auctionABI, signerOrProvider);
 };
