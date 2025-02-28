@@ -2,21 +2,58 @@ import { useState, useContext } from "react";
 import { Web3Context } from "../context/Web3Context";
 import { useParams, useNavigate } from "react-router-dom";
 import { placeBid } from "../components/AuctionContractFunctions";
+import { ethers } from "ethers";
 
 const PlaceBid = () => {
   const { signer } = useContext(Web3Context);
-  const { auctionId } = useParams(); // 🔹 Get auction ID from URL
+  const { auctionId } = useParams(); // Get auction ID from URL
   const navigate = useNavigate();
   const [bidAmount, setBidAmount] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
+
     try {
-      await placeBid(signer, auctionId, bidAmount);
-      alert("Bid placed successfully!");
-      navigate("/"); // 🔹 Redirect back to auction list
+      // Validate bid amount
+      const bidAmountNum = parseFloat(bidAmount);
+      if (isNaN(bidAmountNum) || bidAmountNum <= 0) {
+        setError("Please enter a valid bid amount");
+        setLoading(false);
+        return;
+      }
+
+      // Convert bid amount to Wei
+      const bidAmountInWei = ethers.utils.parseEther(bidAmount.toString());
+
+      // Validate auction ID
+      if (!auctionId || isNaN(parseInt(auctionId))) {
+        setError("Invalid auction ID");
+        setLoading(false);
+        return;
+      }
+
+      // Place the bid
+      const result = await placeBid(
+        signer,
+        parseInt(auctionId),
+        bidAmountInWei
+      );
+
+      if (result.success) {
+        alert("Bid placed successfully!");
+        navigate("/");
+      } else {
+        setError(result.message || "Error placing bid");
+      }
     } catch (error) {
-      alert("Error placing bid: " + error.message);
+      console.error("Error placing bid:", error);
+      setError(error.message || "Error placing bid");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,12 +84,28 @@ const PlaceBid = () => {
           Auction ID: {auctionId}
         </p>
 
+        {error && (
+          <div
+            style={{
+              color: "#ff6b6b",
+              backgroundColor: "rgba(255, 107, 107, 0.1)",
+              padding: "10px",
+              borderRadius: "5px",
+              marginBottom: "15px",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
           style={{ display: "flex", flexDirection: "column" }}
         >
           <input
-            type="text"
+            type="number"
+            step="0.000001"
+            min="0.000001"
             placeholder="Bid Amount (ETH)"
             value={bidAmount}
             onChange={(e) => setBidAmount(e.target.value)}
@@ -73,27 +126,33 @@ const PlaceBid = () => {
           />
           <button
             type="submit"
+            disabled={loading}
             style={{
-              backgroundColor: "#007bff",
+              backgroundColor: loading ? "#666" : "#007bff",
               color: "white",
               padding: "12px",
               border: "none",
               borderRadius: "8px",
               fontSize: "16px",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
               transition: "0.3s",
               fontWeight: "bold",
               marginBottom: "10px",
             }}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
+            onMouseOver={(e) =>
+              !loading && (e.target.style.backgroundColor = "#0056b3")
+            }
+            onMouseOut={(e) =>
+              !loading && (e.target.style.backgroundColor = "#007bff")
+            }
           >
-            Submit Bid
+            {loading ? "Processing..." : "Submit Bid"}
           </button>
         </form>
 
         <button
           onClick={() => navigate("/")}
+          disabled={loading}
           style={{
             backgroundColor: "#dc3545",
             color: "white",
@@ -101,12 +160,17 @@ const PlaceBid = () => {
             border: "none",
             borderRadius: "8px",
             fontSize: "14px",
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
             transition: "0.3s",
             fontWeight: "bold",
+            opacity: loading ? 0.7 : 1,
           }}
-          onMouseOver={(e) => (e.target.style.backgroundColor = "#a71d2a")}
-          onMouseOut={(e) => (e.target.style.backgroundColor = "#dc3545")}
+          onMouseOver={(e) =>
+            !loading && (e.target.style.backgroundColor = "#a71d2a")
+          }
+          onMouseOut={(e) =>
+            !loading && (e.target.style.backgroundColor = "#dc3545")
+          }
         >
           Cancel
         </button>

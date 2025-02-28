@@ -36,7 +36,7 @@ const AuctionList = () => {
           ) {
             break;
           }
-          auctionData.push(details);
+          auctionData.push({ ...details, id }); // Ensure each auction object has an 'id'
           id++;
         } catch (err) {
           console.error(`Error fetching auction ${id}:`, err);
