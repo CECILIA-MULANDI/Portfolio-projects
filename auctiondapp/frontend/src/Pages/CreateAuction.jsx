@@ -12,7 +12,10 @@ const CreateAuction = () => {
   });
 
   const handleChange = (e) => {
-    setAuctionData({ ...auctionData, [e.target.name]: e.target.value });
+    setAuctionData({
+      ...auctionData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -24,6 +27,14 @@ const CreateAuction = () => {
       auctionData.description,
       auctionData.duration
     );
+  };
+
+  // Define placeholders with specific instructions
+  const placeholders = {
+    name: "Auction Name",
+    startingPrice: "Starting Price (ETH)",
+    description: "Item Description",
+    duration: "Duration (in seconds)",
   };
 
   return (
@@ -53,12 +64,12 @@ const CreateAuction = () => {
           onSubmit={handleSubmit}
           style={{ display: "flex", flexDirection: "column" }}
         >
-          {["name", "startingPrice", "description", "duration"].map((field) => (
+          {Object.keys(auctionData).map((field) => (
             <input
               key={field}
               type="text"
               name={field}
-              placeholder={field.replace(/([A-Z])/g, " $1")}
+              placeholder={placeholders[field]}
               onChange={handleChange}
               required
               style={{
