@@ -80,9 +80,77 @@ const AuctionList = () => {
     }
   };
 
+  // Define styles for responsive layout
+  const containerStyle = {
+    textAlign: "center",
+    padding: "20px",
+  };
+
+  const titleStyle = {
+    textAlign: "center",
+    width: "100%",
+    marginBottom: "20px",
+  };
+
+  const auctionGridStyle = {
+    display: "flex",
+    flexWrap: "nowrap", // Default to horizontal scrolling on large screens
+    overflowX: "auto", // Allow horizontal scrolling
+    gap: "20px",
+    padding: "10px",
+  };
+
+  // Media query styles handled in-line
+  // We'll check window width and apply different styles
+
+  const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(false);
+
+    useEffect(() => {
+      const media = window.matchMedia(query);
+      if (media.matches !== matches) {
+        setMatches(media.matches);
+      }
+
+      const listener = () => setMatches(media.matches);
+      media.addEventListener("change", listener);
+
+      return () => media.removeEventListener("change", listener);
+    }, [matches, query]);
+
+    return matches;
+  };
+
+  // Check if screen is small (mobile)
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+
+  // Adjust styles based on screen size
+  const responsiveGridStyle = {
+    ...auctionGridStyle,
+    flexWrap: isSmallScreen ? "wrap" : "nowrap",
+    justifyContent: isSmallScreen ? "center" : "flex-start",
+    overflowX: isSmallScreen ? "visible" : "auto",
+  };
+
+  const cardStyle = {
+    border: "1px solid #ddd",
+    borderRadius: "10px",
+    padding: "20px",
+    backgroundColor: "#343a40",
+    color: "white",
+    boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
+    textAlign: "left",
+    width: isSmallScreen ? "calc(100% - 40px)" : "300px",
+    minHeight: "380px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    flexShrink: 0, // Prevent cards from shrinking in horizontal mode
+  };
+
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h2>Active Auctions</h2>
+    <div style={containerStyle}>
+      <h2 style={titleStyle}>Active Auctions</h2>
 
       {loading ? (
         <p>Loading auctions...</p>
@@ -110,77 +178,62 @@ const AuctionList = () => {
           contract.
         </p>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "20px",
-            justifyContent: "center",
-            padding: "20px",
-          }}
-        >
+        <div style={responsiveGridStyle}>
           {auctions.map((auction) => (
-            <div
-              key={auction.id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "10px",
-                padding: "20px",
-                backgroundColor: "#343a40",
-                color: "white",
-                boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
-                textAlign: "left",
-              }}
-            >
-              <h3>{auction.name}</h3>
-              <p>{auction.description}</p>
-              <p>
-                <strong>Starting Price:</strong> {auction.startingPrice} ETH
-              </p>
-              <p>
-                <strong>Highest Bid:</strong> {auction.highestBid} ETH
-              </p>
-              <p>
-                <strong>End Time:</strong> {auction.endTime}
-              </p>
+            <div key={auction.id} style={cardStyle}>
+              <div>
+                <h3 style={{ marginTop: "0" }}>{auction.name}</h3>
+                <p>{auction.description}</p>
+                <p>
+                  <strong>Starting Price:</strong> {auction.startingPrice} ETH
+                </p>
+                <p>
+                  <strong>Highest Bid:</strong> {auction.highestBid} ETH
+                </p>
+                <p>
+                  <strong>End Time:</strong> {auction.endTime}
+                </p>
+              </div>
 
-              <button
-                onClick={() => navigate(`/place-bid/${auction.id}`)}
-                style={{
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  padding: "10px",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  width: "100%",
-                  marginTop: "10px",
-                }}
-              >
-                Place Bid
-              </button>
-              <button
-                onClick={() => handleEndAuction(auction.id)}
-                style={{
-                  backgroundColor: "red",
-                  color: "white",
-                  padding: "10px",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  width: "100%",
-                  marginTop: "10px",
-                }}
-              >
-                End Auction
-              </button>
+              <div>
+                <button
+                  onClick={() => navigate(`/place-bid/${auction.id}`)}
+                  style={{
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    padding: "10px",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    width: "100%",
+                    marginTop: "10px",
+                  }}
+                >
+                  Place Bid
+                </button>
+                <button
+                  onClick={() => handleEndAuction(auction.id)}
+                  style={{
+                    backgroundColor: "red",
+                    color: "white",
+                    padding: "10px",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    width: "100%",
+                    marginTop: "10px",
+                  }}
+                >
+                  End Auction
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <hr />
-      <h2>Account Actions</h2>
+      <hr style={{ margin: "30px 0" }} />
+      <h2 style={titleStyle}>Account Actions</h2>
       <button
         onClick={handleWithdrawFunds}
         style={{

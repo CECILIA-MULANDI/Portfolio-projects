@@ -1,0 +1,90 @@
+/* Centering the Page */
+.auction-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  width: 100%;
+}
+
+/* Title Styling */
+.auction-title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #fff;
+}
+
+/* Responsive Grid Layout */
+.auction-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  justify-content: center;
+}
+
+/* Auction Card */
+.auction-card {
+  background-color: #343a40;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  max-width: 300px;
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Buttons */
+.bid-button,
+.end-button,
+.withdraw-button,
+.retry-button {
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.bid-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.end-button {
+  background-color: red;
+  color: white;
+}
+
+.withdraw-button {
+  background-color: green;
+  color: white;
+}
+
+.retry-button {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Error Message Styling */
+.error-message {
+  color: red;
+  text-align: center;
+}
+
+/* Mobile Optimization */
+@media (max-width: 600px) {
+  .auction-card {
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+  }
+}
