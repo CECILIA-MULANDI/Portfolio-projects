@@ -176,7 +176,7 @@ const AuctionList = () => {
     backgroundColor: "#121212",
     color: "#fff",
     minHeight: "100vh",
-    maxWidth: "100%",
+    maxWidth: "100vw",
     overflow: "hidden", // Prevent horizontal scrolling
   };
 
