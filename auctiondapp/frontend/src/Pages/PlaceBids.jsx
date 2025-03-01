@@ -2,10 +2,9 @@ import { useState, useContext } from "react";
 import { Web3Context } from "../context/Web3Context";
 import { useParams, useNavigate } from "react-router-dom";
 import { placeBid } from "../components/AuctionContractFunctions";
-import { ethers } from "ethers";
 
 const PlaceBid = () => {
-  const { signer, account } = useContext(Web3Context);
+  const { signer } = useContext(Web3Context);
   const { auctionId } = useParams(); // Get auction ID from URL
   const navigate = useNavigate();
   const [bidAmount, setBidAmount] = useState("");
@@ -26,9 +25,6 @@ const PlaceBid = () => {
         return;
       }
 
-      // Convert bid amount to Wei
-      const bidAmountInWei = ethers.utils.parseEther(bidAmount.toString());
-
       // Validate auction ID
       if (!auctionId || isNaN(parseInt(auctionId))) {
         setError("Invalid auction ID");
@@ -36,11 +32,11 @@ const PlaceBid = () => {
         return;
       }
 
-      // Place the bid
+      // Place the bid - pass bidAmount as a string value
       const result = await placeBid(
         signer,
         parseInt(auctionId),
-        bidAmountInWei
+        bidAmount.toString()
       );
 
       if (result.success) {
