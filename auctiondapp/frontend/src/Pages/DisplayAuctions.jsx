@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   getAuctionDetails,
   endAuction,
@@ -6,11 +6,11 @@ import {
   getAuctionCount,
 } from "../components/AuctionContractFunctions";
 import { useNavigate } from "react-router-dom";
-import useWallet from "../components/ConnectWallet";
+import { Web3Context } from "../context/Web3Context";
 
 const AuctionList = () => {
   const { provider, signer, account, connectWallet, isConnecting } =
-    useWallet();
+    useContext(Web3Context);
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,7 +37,7 @@ const AuctionList = () => {
           auctionPromises.push(
             getAuctionDetails(provider, id)
               .then((details) => {
-                // Skip auctions with null address (shouldn't happen with proper counting)
+                // Skip auctions with null address
                 if (
                   details &&
                   details.seller !==
@@ -92,16 +92,27 @@ const AuctionList = () => {
       if (!(await ensureWalletConnected())) return;
 
       if (!signer) {
-        alert("Wallet connected but signer not available. Please try again.");
+        setError(
+          "Wallet connected but signer not available. Please try again."
+        );
         return;
       }
 
-      await endAuction(signer, auctionId);
-      alert("Auction end requested. Please wait for transaction confirmation.");
-      window.location.reload();
+      const result = await endAuction(signer, auctionId);
+      if (result.success) {
+        // Show temporary success status and reload after delay
+        alert("Auction ended successfully!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        setError(result.message || "Failed to end auction");
+      }
     } catch (err) {
       console.error("Error ending auction:", err);
-      alert("Failed to end auction. See console for details.");
+      setError(
+        err.message || "Failed to end auction. See console for details."
+      );
     }
   };
 
@@ -110,15 +121,23 @@ const AuctionList = () => {
       if (!(await ensureWalletConnected())) return;
 
       if (!signer) {
-        alert("Wallet connected but signer not available. Please try again.");
+        setError(
+          "Wallet connected but signer not available. Please try again."
+        );
         return;
       }
 
-      await withdrawFunds(signer);
-      alert("Withdrawal requested. Please wait for transaction confirmation.");
+      const result = await withdrawFunds(signer);
+      if (result.success) {
+        alert(result.message || "Withdrawal successful!");
+      } else {
+        setError(result.message || "Failed to withdraw funds");
+      }
     } catch (err) {
       console.error("Error withdrawing funds:", err);
-      alert("Failed to withdraw funds. See console for details.");
+      setError(
+        err.message || "Failed to withdraw funds. See console for details."
+      );
     }
   };
 
@@ -131,12 +150,16 @@ const AuctionList = () => {
   const containerStyle = {
     textAlign: "center",
     padding: "20px",
+    backgroundColor: "#121212",
+    color: "#fff",
+    minHeight: "100vh",
   };
 
   const titleStyle = {
     textAlign: "center",
     width: "100%",
     marginBottom: "20px",
+    color: "#fff",
   };
 
   const auctionGridStyle = {
@@ -180,12 +203,12 @@ const AuctionList = () => {
   };
 
   const cardStyle = {
-    border: "1px solid #ddd",
-    borderRadius: "10px",
+    border: "1px solid #333",
+    borderRadius: "12px",
     padding: "20px",
-    backgroundColor: "#343a40",
+    backgroundColor: "#1e1e1e",
     color: "white",
-    boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
     textAlign: "left",
     width: isSmallScreen ? "calc(100% - 40px)" : "300px",
     minHeight: "380px",
@@ -199,10 +222,32 @@ const AuctionList = () => {
   const statusStyle = {
     margin: "0 0 20px 0",
     padding: "8px 15px",
-    backgroundColor: "#28a745",
-    color: "white",
-    borderRadius: "5px",
+    backgroundColor: "rgba(40, 167, 69, 0.2)",
+    color: "#75b798",
+    borderRadius: "8px",
     display: "inline-block",
+    border: "1px solid rgba(40, 167, 69, 0.3)",
+  };
+
+  const errorStyle = {
+    backgroundColor: "rgba(220, 53, 69, 0.2)",
+    color: "#ff6b6b",
+    padding: "12px",
+    borderRadius: "8px",
+    marginBottom: "20px",
+    border: "1px solid rgba(220, 53, 69, 0.3)",
+  };
+
+  const buttonStyle = {
+    padding: "12px",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "16px",
+    cursor: "pointer",
+    transition: "0.3s",
+    fontWeight: "bold",
+    width: "100%",
+    marginTop: "10px",
   };
 
   return (
@@ -215,26 +260,28 @@ const AuctionList = () => {
 
       <h2 style={titleStyle}>Active Auctions</h2>
 
-      {loading ? (
-        <p>Loading auctions...</p>
-      ) : error ? (
-        <div style={{ color: "red", margin: "20px 0" }}>
+      {error && (
+        <div style={errorStyle}>
           <p>{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              setError(null);
+              window.location.reload();
+            }}
             style={{
+              ...buttonStyle,
               backgroundColor: "#007bff",
               color: "white",
-              padding: "10px",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
               marginTop: "10px",
             }}
           >
             Retry
           </button>
         </div>
+      )}
+
+      {loading ? (
+        <p>Loading auctions...</p>
       ) : auctions.length === 0 ? (
         <p>
           No auctions found. There might not be any active auctions in the
@@ -262,30 +309,32 @@ const AuctionList = () => {
                 <button
                   onClick={() => handlePlaceBid(auction.id)}
                   style={{
+                    ...buttonStyle,
                     backgroundColor: "#007bff",
                     color: "white",
-                    padding: "10px",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    width: "100%",
-                    marginTop: "10px",
                   }}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#0056b3")
+                  }
+                  onMouseOut={(e) =>
+                    (e.target.style.backgroundColor = "#007bff")
+                  }
                 >
                   Place Bid
                 </button>
                 <button
                   onClick={() => handleEndAuction(auction.id)}
                   style={{
-                    backgroundColor: "red",
+                    ...buttonStyle,
+                    backgroundColor: "#dc3545",
                     color: "white",
-                    padding: "10px",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    width: "100%",
-                    marginTop: "10px",
                   }}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#c82333")
+                  }
+                  onMouseOut={(e) =>
+                    (e.target.style.backgroundColor = "#dc3545")
+                  }
                 >
                   End Auction
                 </button>
@@ -295,18 +344,19 @@ const AuctionList = () => {
         </div>
       )}
 
-      <hr style={{ margin: "30px 0" }} />
+      <hr style={{ margin: "30px 0", borderColor: "#333" }} />
       <h2 style={titleStyle}>Account Actions</h2>
       <button
         onClick={handleWithdrawFunds}
         style={{
-          backgroundColor: "green",
+          ...buttonStyle,
+          backgroundColor: "#28a745",
           color: "white",
-          padding: "10px 20px",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
+          width: "auto",
+          padding: "12px 20px",
         }}
+        onMouseOver={(e) => (e.target.style.backgroundColor = "#218838")}
+        onMouseOut={(e) => (e.target.style.backgroundColor = "#28a745")}
       >
         Withdraw Funds
       </button>
