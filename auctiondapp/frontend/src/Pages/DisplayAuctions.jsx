@@ -3,9 +3,10 @@ import {
   getAuctionDetails,
   endAuction,
   withdrawFunds,
+  getAuctionCount,
 } from "../components/AuctionContractFunctions";
 import { useNavigate } from "react-router-dom";
-import useWallet from "../components/ConnectWallet"; // Import our custom hook
+import useWallet from "../components/ConnectWallet";
 
 const AuctionList = () => {
   const { provider, signer, account, connectWallet, isConnecting } =
@@ -25,28 +26,47 @@ const AuctionList = () => {
 
       setLoading(true);
       setError(null);
-      const auctionData = [];
-      let id = 0;
 
-      while (true) {
-        try {
-          const details = await getAuctionDetails(provider, id);
-          if (
-            !details ||
-            details.seller === "0x0000000000000000000000000000000000000000"
-          ) {
-            break;
-          }
-          auctionData.push({ ...details, id }); // Ensure each auction object has an 'id'
-          id++;
-        } catch (err) {
-          console.error(`Error fetching auction ${id}:`, err);
-          break;
+      try {
+        // Get the total number of auctions from the contract
+        const auctionCount = await getAuctionCount(provider);
+        const auctionPromises = [];
+
+        // Create an array of promises for fetching all auction details
+        for (let id = 0; id < auctionCount; id++) {
+          auctionPromises.push(
+            getAuctionDetails(provider, id)
+              .then((details) => {
+                // Skip auctions with null address (shouldn't happen with proper counting)
+                if (
+                  details &&
+                  details.seller !==
+                    "0x0000000000000000000000000000000000000000"
+                ) {
+                  return { ...details, id };
+                }
+                return null;
+              })
+              .catch((err) => {
+                console.error(`Error fetching auction ${id}:`, err);
+                return null;
+              })
+          );
         }
-      }
 
-      setAuctions(auctionData);
-      setLoading(false);
+        // Wait for all promises to resolve
+        const results = await Promise.all(auctionPromises);
+
+        // Filter out any null results (failed fetches or empty auctions)
+        const validAuctions = results.filter((auction) => auction !== null);
+
+        setAuctions(validAuctions);
+      } catch (err) {
+        console.error("Error fetching auctions:", err);
+        setError("Failed to fetch auctions. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAuctions();
