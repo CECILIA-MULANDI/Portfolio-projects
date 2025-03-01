@@ -53,6 +53,7 @@ const AuctionList = () => {
       try {
         // Get the total number of auctions from the contract
         const auctionCount = await getAuctionCount(provider);
+        console.log("Auction Count:", auctionCount); // Debug log
         const auctionPromises = [];
 
         // Create an array of promises for fetching all auction details
@@ -82,6 +83,7 @@ const AuctionList = () => {
 
         // Filter out any null results (failed fetches or empty auctions)
         const validAuctions = results.filter((auction) => auction !== null);
+        console.log("Valid Auctions:", validAuctions); // Debug log
 
         setAuctions(validAuctions);
       } catch (err) {
