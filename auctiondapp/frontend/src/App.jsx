@@ -5,6 +5,7 @@ import AuctionList from "./Pages/DisplayAuctions";
 import CreateAuction from "./Pages/CreateAuction";
 import Navbar from "./components/Navbar";
 import PlaceBid from "./Pages/PlaceBids";
+import MyBids from "./Pages/MyBids";
 const App = () => {
   return (
     <Web3Provider>
@@ -15,6 +16,7 @@ const App = () => {
           <Route path="/auctions" element={<AuctionList />} />
           <Route path="/create-auction" element={<CreateAuction />} />
           <Route path="/place-bid/:auctionId" element={<PlaceBid />} />
+          <Route path="/my-bids" element={<MyBids />} />
         </Routes>
       </Router>
     </Web3Provider>

@@ -5,7 +5,7 @@ import { placeBid } from "../components/AuctionContractFunctions";
 import { ethers } from "ethers";
 
 const PlaceBid = () => {
-  const { signer } = useContext(Web3Context);
+  const { signer, account } = useContext(Web3Context);
   const { auctionId } = useParams(); // Get auction ID from URL
   const navigate = useNavigate();
   const [bidAmount, setBidAmount] = useState("");
@@ -45,7 +45,8 @@ const PlaceBid = () => {
 
       if (result.success) {
         alert("Bid placed successfully!");
-        navigate("/");
+        // Redirect to user bids page instead of home
+        navigate("/my-bids");
       } else {
         setError(result.message || "Error placing bid");
       }

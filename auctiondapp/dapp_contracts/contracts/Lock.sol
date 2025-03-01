@@ -22,6 +22,12 @@ contract AuctionContract {
     address public owner;
     uint256 public constant MINIMUM_INCREMENT = 0.00001 ether;
 
+    // Mapping to track user bids: user address => auction IDs
+    mapping(address => uint256[]) private userBids;
+
+    // Mapping to check if a user has already bid on a specific auction
+    mapping(address => mapping(uint256 => bool)) private hasBidOnAuction;
+
     // Events
     event AuctionCreated(
         uint256 indexed auctionId,
@@ -99,6 +105,10 @@ contract AuctionContract {
         );
         require(msg.value >= auction.startingPrice, "Bid below starting price");
 
+        if (auction.highestBid > 0) {
+            require(msg.value > auction.highestBid, "Bid not high enough");
+        }
+
         // If there was a previous bid, add it to pending returns
         if (auction.highestBid != 0) {
             pendingReturns[auction.highestBidder] += auction.highestBid;
@@ -106,6 +116,12 @@ contract AuctionContract {
 
         auction.highestBidder = payable(msg.sender);
         auction.highestBid = msg.value;
+
+        // Track this bid if it's the user's first bid on this auction
+        if (!hasBidOnAuction[msg.sender][_auctionId]) {
+            userBids[msg.sender].push(_auctionId);
+            hasBidOnAuction[msg.sender][_auctionId] = true;
+        }
 
         emit BidPlaced(_auctionId, msg.sender, msg.value);
     }
@@ -183,6 +199,21 @@ contract AuctionContract {
             auction.endTime,
             auction.ended
         );
+    }
+
+    // Get all auction IDs a user has bid on
+    function getUserBids(
+        address _user
+    ) external view returns (uint256[] memory) {
+        return userBids[_user];
+    }
+
+    // Check if a user has bid on a specific auction
+    function hasUserBidOnAuction(
+        address _user,
+        uint256 _auctionId
+    ) external view returns (bool) {
+        return hasBidOnAuction[_user][_auctionId];
     }
 
     function getPendingReturn(address bidder) external view returns (uint256) {

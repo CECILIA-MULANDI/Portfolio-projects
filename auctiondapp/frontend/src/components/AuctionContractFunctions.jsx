@@ -1,7 +1,8 @@
 import { ethers } from "ethers";
 import auctionABI from "../abi.json"; // Import ABI
 
-const CONTRACT_ADDRESS = "0x04A832C2A8c8a571F81CFFE1218e1067bDCB6614";
+// const CONTRACT_ADDRESS = "0x04A832C2A8c8a571F81CFFE1218e1067bDCB6614";
+const CONTRACT_ADDRESS = "0x63C1C323a829E32e8CbCee395aB3d67083cA0b2D";
 export const getAuctionContract = (signerOrProvider) => {
   return new ethers.Contract(CONTRACT_ADDRESS, auctionABI, signerOrProvider);
 };
@@ -215,5 +216,24 @@ export const getAuctionDetails = async (provider, auctionId) => {
   } catch (error) {
     console.error("Error fetching auction:", error);
     return null;
+  }
+};
+export const getUserBids = async (provider, userAddress) => {
+  if (!provider) {
+    console.error("Provider is required to fetch user bids.");
+    return [];
+  }
+
+  try {
+    const contract = getAuctionContract(provider);
+    console.log("Fetching bids for user:", userAddress);
+
+    const bids = await contract.getUserBids(userAddress);
+    console.log("Raw bid data:", bids);
+
+    return bids.map((bid) => ethers.utils.formatEther(bid));
+  } catch (error) {
+    console.error("Error fetching user bids:", error);
+    return [];
   }
 };
