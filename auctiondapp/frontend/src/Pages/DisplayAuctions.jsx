@@ -157,7 +157,7 @@ const AuctionList = () => {
 
   const titleStyle = {
     textAlign: "center",
-    width: "100%",
+    width: "100vw",
     marginBottom: "20px",
     color: "#fff",
   };
