@@ -197,25 +197,63 @@ export const withdrawFunds = async (signer) => {
 export const getAuctionDetails = async (provider, auctionId) => {
   try {
     console.log("Getting contract with provider:", provider);
+
+    // Validate provider
+    if (!provider) {
+      throw new Error("Provider is undefined or invalid");
+    }
+
     const contract = getAuctionContract(provider);
+
+    // Validate contract
+    if (!contract || !contract.getAuction) {
+      throw new Error("Invalid contract instance");
+    }
+
     console.log("Fetching auction ID:", auctionId);
     const auction = await contract.getAuction(auctionId);
     console.log("Raw auction data:", auction);
 
-    // Make sure BigNumber values are properly formatted
+    // Validate auction data
+    if (!auction || auction.length < 8) {
+      throw new Error("Invalid auction data returned from contract");
+    }
+
+    // Safely format BigNumber values with proper error checking
+    let startingPrice = "0";
+    let highestBid = "0";
+    try {
+      startingPrice = ethers.utils.formatEther(auction[3]);
+      highestBid = ethers.utils.formatEther(auction[4]);
+    } catch (formatError) {
+      console.warn("Error formatting ETH values:", formatError);
+      // Use fallback values or try alternative conversion
+    }
+
+    // Safely format timestamp
+    let endTimeString = "Unknown";
+    try {
+      const timestamp = Number(auction[6]);
+      if (!isNaN(timestamp) && timestamp > 0) {
+        endTimeString = new Date(timestamp * 1000).toLocaleString();
+      }
+    } catch (timeError) {
+      console.warn("Error formatting timestamp:", timeError);
+    }
+
     return {
-      seller: auction[0],
-      name: auction[1],
-      description: auction[2],
-      startingPrice: ethers.utils.formatEther(auction[3]),
-      highestBid: ethers.utils.formatEther(auction[4]),
-      highestBidder: auction[5],
-      endTime: new Date(Number(auction[6]) * 1000).toLocaleString(),
-      ended: auction[7],
+      seller: auction[0] || "Unknown",
+      name: auction[1] || "Untitled Auction",
+      description: auction[2] || "No description",
+      startingPrice,
+      highestBid,
+      highestBidder: auction[5] || "0x0000000000000000000000000000000000000000",
+      endTime: endTimeString,
+      ended: Boolean(auction[7]),
     };
   } catch (error) {
     console.error("Error fetching auction:", error);
-    return null;
+    throw error; // Re-throw to allow caller to handle
   }
 };
 export const getUserBids = async (provider, userAddress) => {

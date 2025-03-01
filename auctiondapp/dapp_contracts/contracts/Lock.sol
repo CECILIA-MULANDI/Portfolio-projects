@@ -179,7 +179,7 @@ contract AuctionContract {
         view
         returns (
             address seller,
-            string memory title,
+            string memory name,
             string memory description,
             uint256 startingPrice,
             uint256 highestBid,
