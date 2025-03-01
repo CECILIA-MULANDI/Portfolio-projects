@@ -1,14 +1,15 @@
-import { useState, useEffect, useContext } from "react";
-import { Web3Context } from "../context/Web3Context";
+import { useState, useEffect } from "react";
 import {
   getAuctionDetails,
   endAuction,
   withdrawFunds,
 } from "../components/AuctionContractFunctions";
 import { useNavigate } from "react-router-dom";
+import useWallet from "../components/ConnectWallet"; // Import our custom hook
 
 const AuctionList = () => {
-  const { provider, signer } = useContext(Web3Context);
+  const { provider, signer, account, connectWallet, isConnecting } =
+    useWallet();
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,12 +52,30 @@ const AuctionList = () => {
     fetchAuctions();
   }, [provider]);
 
+  // Ensure wallet is connected before performing actions
+  const ensureWalletConnected = async () => {
+    if (!account && !isConnecting) {
+      const confirmed = window.confirm(
+        "Please connect your wallet to continue. Connect now?"
+      );
+      if (confirmed) {
+        await connectWallet();
+        return !!account;
+      }
+      return false;
+    }
+    return true;
+  };
+
   const handleEndAuction = async (auctionId) => {
     try {
+      if (!(await ensureWalletConnected())) return;
+
       if (!signer) {
-        alert("Please connect your wallet to end an auction");
+        alert("Wallet connected but signer not available. Please try again.");
         return;
       }
+
       await endAuction(signer, auctionId);
       alert("Auction end requested. Please wait for transaction confirmation.");
       window.location.reload();
@@ -68,16 +87,24 @@ const AuctionList = () => {
 
   const handleWithdrawFunds = async () => {
     try {
+      if (!(await ensureWalletConnected())) return;
+
       if (!signer) {
-        alert("Please connect your wallet to withdraw funds");
+        alert("Wallet connected but signer not available. Please try again.");
         return;
       }
+
       await withdrawFunds(signer);
       alert("Withdrawal requested. Please wait for transaction confirmation.");
     } catch (err) {
       console.error("Error withdrawing funds:", err);
       alert("Failed to withdraw funds. See console for details.");
     }
+  };
+
+  const handlePlaceBid = async (auctionId) => {
+    if (!(await ensureWalletConnected())) return;
+    navigate(`/place-bid/${auctionId}`);
   };
 
   // Define styles for responsive layout
@@ -148,8 +175,24 @@ const AuctionList = () => {
     flexShrink: 0, // Prevent cards from shrinking in horizontal mode
   };
 
+  // Show connection status if connected
+  const statusStyle = {
+    margin: "0 0 20px 0",
+    padding: "8px 15px",
+    backgroundColor: "#28a745",
+    color: "white",
+    borderRadius: "5px",
+    display: "inline-block",
+  };
+
   return (
     <div style={containerStyle}>
+      {account && (
+        <div style={statusStyle}>
+          Connected: {account.slice(0, 6)}...{account.slice(-4)}
+        </div>
+      )}
+
       <h2 style={titleStyle}>Active Auctions</h2>
 
       {loading ? (
@@ -197,7 +240,7 @@ const AuctionList = () => {
 
               <div>
                 <button
-                  onClick={() => navigate(`/place-bid/${auction.id}`)}
+                  onClick={() => handlePlaceBid(auction.id)}
                   style={{
                     backgroundColor: "#007bff",
                     color: "white",
