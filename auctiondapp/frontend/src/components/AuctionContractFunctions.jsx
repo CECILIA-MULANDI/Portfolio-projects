@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import auctionABI from "../abi.json"; // Import ABI
+import auctionABI from "../abi.json";
 
 // const CONTRACT_ADDRESS = "0x04A832C2A8c8a571F81CFFE1218e1067bDCB6614";
 const CONTRACT_ADDRESS = "0x63C1C323a829E32e8CbCee395aB3d67083cA0b2D";
