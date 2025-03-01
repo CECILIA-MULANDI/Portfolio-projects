@@ -169,20 +169,30 @@ const AuctionList = () => {
     navigate(`/place-bid/${auctionId}`);
   };
 
+  // Root wrapper style to ensure full width background
+  const rootWrapperStyle = {
+    width: "100%",
+    minHeight: "100vh",
+    margin: 0,
+    padding: 0,
+    backgroundColor: "#121212",
+    position: "relative",
+    boxSizing: "border-box",
+    overflow: "hidden", // Prevent horizontal scroll
+  };
+
   // Define styles for responsive layout
   const containerStyle = {
     textAlign: "center",
     padding: isSmallScreen ? "10px" : "20px",
-    backgroundColor: "#121212",
     color: "#fff",
-    minHeight: "100vh",
-    maxWidth: "100vw",
-    overflow: "hidden", // Prevent horizontal scrolling
+    margin: "0 auto", // Center content
+    maxWidth: "100%",
+    boxSizing: "border-box",
   };
 
   const titleStyle = {
     textAlign: "center",
-    width: "100%", // Changed from 100vw to prevent overflow
     marginBottom: "20px",
     color: "#fff",
     fontSize: isVerySmallScreen ? "1.5rem" : "2rem",
@@ -278,123 +288,126 @@ const AuctionList = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      {account && (
-        <div style={statusStyle}>
-          Connected: {account.slice(0, 6)}...{account.slice(-4)}
-        </div>
-      )}
+    <div style={rootWrapperStyle}>
+      <div style={containerStyle}>
+        {account && (
+          <div style={statusStyle}>
+            Connected: {account.slice(0, 6)}...{account.slice(-4)}
+          </div>
+        )}
 
-      <h2 style={titleStyle}>Active Auctions</h2>
+        <h2 style={titleStyle}>Active Auctions</h2>
 
-      {error && (
-        <div style={errorStyle}>
-          <p>{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              window.location.reload();
-            }}
-            style={{
-              ...buttonStyle,
-              backgroundColor: "#007bff",
-              color: "white",
-              marginTop: "10px",
-              maxWidth: isSmallScreen ? "200px" : "none",
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      )}
+        {error && (
+          <div style={errorStyle}>
+            <p>{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                window.location.reload();
+              }}
+              style={{
+                ...buttonStyle,
+                backgroundColor: "#007bff",
+                color: "white",
+                marginTop: "10px",
+                maxWidth: isSmallScreen ? "200px" : "none",
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
-      {loading ? (
-        <p>Loading auctions...</p>
-      ) : auctions.length === 0 ? (
-        <p>
-          No auctions found. There might not be any active auctions in the
-          contract.
-        </p>
-      ) : (
-        <div style={responsiveGridStyle}>
-          {auctions.map((auction) => (
-            <div key={auction.id} style={cardStyle}>
-              <div>
-                <h3
-                  style={{
-                    marginTop: "0",
-                    fontSize: isVerySmallScreen ? "1.2rem" : "1.5rem",
-                  }}
-                >
-                  {auction.name}
-                </h3>
-                <p>{auction.description}</p>
-                <p>
-                  <strong>Starting Price:</strong> {auction.startingPrice} ETH
-                </p>
-                <p>
-                  <strong>Highest Bid:</strong> {auction.highestBid} ETH
-                </p>
-                <p>
-                  <strong>End Time:</strong> {auction.endTime}
-                </p>
+        {loading ? (
+          <p>Loading auctions...</p>
+        ) : auctions.length === 0 ? (
+          <p>
+            No auctions found. There might not be any active auctions in the
+            contract.
+          </p>
+        ) : (
+          <div style={responsiveGridStyle}>
+            {auctions.map((auction) => (
+              <div key={auction.id} style={cardStyle}>
+                <div>
+                  <h3
+                    style={{
+                      marginTop: "0",
+                      fontSize: isVerySmallScreen ? "1.2rem" : "1.5rem",
+                    }}
+                  >
+                    {auction.name}
+                  </h3>
+                  <p>{auction.description}</p>
+                  <p>
+                    <strong>Starting Price:</strong> {auction.startingPrice} ETH
+                  </p>
+                  <p>
+                    <strong>Highest Bid:</strong> {auction.highestBid} ETH
+                  </p>
+                  <p>
+                    <strong>End Time:</strong> {auction.endTime}
+                  </p>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => handlePlaceBid(auction.id)}
+                    style={{
+                      ...buttonStyle,
+                      backgroundColor: "#007bff",
+                      color: "white",
+                    }}
+                    onMouseOver={(e) =>
+                      (e.target.style.backgroundColor = "#0056b3")
+                    }
+                    onMouseOut={(e) =>
+                      (e.target.style.backgroundColor = "#007bff")
+                    }
+                  >
+                    Place Bid
+                  </button>
+                  <button
+                    onClick={() => handleEndAuction(auction.id)}
+                    style={{
+                      ...buttonStyle,
+                      backgroundColor: "#dc3545",
+                      color: "white",
+                    }}
+                    onMouseOver={(e) =>
+                      (e.target.style.backgroundColor = "#c82333")
+                    }
+                    onMouseOut={(e) =>
+                      (e.target.style.backgroundColor = "#dc3545")
+                    }
+                  >
+                    End Auction
+                  </button>
+                </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              <div>
-                <button
-                  onClick={() => handlePlaceBid(auction.id)}
-                  style={{
-                    ...buttonStyle,
-                    backgroundColor: "#007bff",
-                    color: "white",
-                  }}
-                  onMouseOver={(e) =>
-                    (e.target.style.backgroundColor = "#0056b3")
-                  }
-                  onMouseOut={(e) =>
-                    (e.target.style.backgroundColor = "#007bff")
-                  }
-                >
-                  Place Bid
-                </button>
-                <button
-                  onClick={() => handleEndAuction(auction.id)}
-                  style={{
-                    ...buttonStyle,
-                    backgroundColor: "#dc3545",
-                    color: "white",
-                  }}
-                  onMouseOver={(e) =>
-                    (e.target.style.backgroundColor = "#c82333")
-                  }
-                  onMouseOut={(e) =>
-                    (e.target.style.backgroundColor = "#dc3545")
-                  }
-                >
-                  End Auction
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        <hr
+          style={{
+            margin: isSmallScreen ? "20px 0" : "30px 0",
+            borderColor: "#333",
+            width: "100%",
+          }}
+        />
 
-      <hr
-        style={{
-          margin: isSmallScreen ? "20px 0" : "30px 0",
-          borderColor: "#333",
-        }}
-      />
-
-      <h2 style={titleStyle}>Account Actions</h2>
-      <button
-        onClick={handleWithdrawFunds}
-        style={withdrawButtonStyle}
-        onMouseOver={(e) => (e.target.style.backgroundColor = "#218838")}
-        onMouseOut={(e) => (e.target.style.backgroundColor = "#28a745")}
-      >
-        Withdraw Funds
-      </button>
+        <h2 style={titleStyle}>Account Actions</h2>
+        <button
+          onClick={handleWithdrawFunds}
+          style={withdrawButtonStyle}
+          onMouseOver={(e) => (e.target.style.backgroundColor = "#218838")}
+          onMouseOut={(e) => (e.target.style.backgroundColor = "#28a745")}
+        >
+          Withdraw Funds
+        </button>
+      </div>
     </div>
   );
 };
