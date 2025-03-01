@@ -16,6 +16,29 @@ const AuctionList = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Custom hook for responsive design
+  const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(false);
+
+    useEffect(() => {
+      const media = window.matchMedia(query);
+      if (media.matches !== matches) {
+        setMatches(media.matches);
+      }
+
+      const listener = () => setMatches(media.matches);
+      media.addEventListener("change", listener);
+
+      return () => media.removeEventListener("change", listener);
+    }, [matches, query]);
+
+    return matches;
+  };
+
+  // Check if screen is small (mobile) or very small
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const isVerySmallScreen = useMediaQuery("(max-width: 480px)");
+
   useEffect(() => {
     const fetchAuctions = async () => {
       if (!provider) {
@@ -149,50 +172,34 @@ const AuctionList = () => {
   // Define styles for responsive layout
   const containerStyle = {
     textAlign: "center",
-    padding: "20px",
+    padding: isSmallScreen ? "10px" : "20px",
     backgroundColor: "#121212",
     color: "#fff",
     minHeight: "100vh",
+    maxWidth: "100%",
+    overflow: "hidden", // Prevent horizontal scrolling
   };
 
   const titleStyle = {
     textAlign: "center",
-    width: "100vw",
+    width: "100%", // Changed from 100vw to prevent overflow
     marginBottom: "20px",
     color: "#fff",
+    fontSize: isVerySmallScreen ? "1.5rem" : "2rem",
+    paddingLeft: isSmallScreen ? "10px" : "0",
+    paddingRight: isSmallScreen ? "10px" : "0",
   };
 
   const auctionGridStyle = {
     display: "flex",
     flexWrap: "nowrap", // Default to horizontal scrolling on large screens
     overflowX: "auto", // Allow horizontal scrolling
-    gap: "20px",
-    padding: "10px",
+    gap: isSmallScreen ? "10px" : "20px",
+    padding: isSmallScreen ? "5px" : "10px",
+    WebkitOverflowScrolling: "touch", // Smooth scrolling on iOS
+    scrollbarWidth: "thin", // For Firefox
+    msOverflowStyle: "none", // For IE and Edge
   };
-
-  // Media query styles handled in-line
-  // We'll check window width and apply different styles
-
-  const useMediaQuery = (query) => {
-    const [matches, setMatches] = useState(false);
-
-    useEffect(() => {
-      const media = window.matchMedia(query);
-      if (media.matches !== matches) {
-        setMatches(media.matches);
-      }
-
-      const listener = () => setMatches(media.matches);
-      media.addEventListener("change", listener);
-
-      return () => media.removeEventListener("change", listener);
-    }, [matches, query]);
-
-    return matches;
-  };
-
-  // Check if screen is small (mobile)
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
   // Adjust styles based on screen size
   const responsiveGridStyle = {
@@ -205,49 +212,69 @@ const AuctionList = () => {
   const cardStyle = {
     border: "1px solid #333",
     borderRadius: "12px",
-    padding: "20px",
+    padding: isSmallScreen ? "15px" : "20px",
     backgroundColor: "#1e1e1e",
     color: "white",
     boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
     textAlign: "left",
-    width: isSmallScreen ? "calc(100% - 40px)" : "300px",
-    minHeight: "380px",
+    width: isSmallScreen
+      ? isVerySmallScreen
+        ? "calc(100% - 20px)"
+        : "calc(100% - 30px)"
+      : "300px",
+    minHeight: isSmallScreen ? "350px" : "380px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
     flexShrink: 0, // Prevent cards from shrinking in horizontal mode
+    marginBottom: isSmallScreen ? "20px" : "0", // Add bottom margin on small screens
+    fontSize: isVerySmallScreen ? "0.9rem" : "1rem",
   };
 
   // Show connection status if connected
   const statusStyle = {
     margin: "0 0 20px 0",
-    padding: "8px 15px",
+    padding: isSmallScreen ? "6px 12px" : "8px 15px",
     backgroundColor: "rgba(40, 167, 69, 0.2)",
     color: "#75b798",
     borderRadius: "8px",
     display: "inline-block",
     border: "1px solid rgba(40, 167, 69, 0.3)",
+    fontSize: isVerySmallScreen ? "0.8rem" : "1rem",
   };
 
   const errorStyle = {
     backgroundColor: "rgba(220, 53, 69, 0.2)",
     color: "#ff6b6b",
-    padding: "12px",
+    padding: isSmallScreen ? "10px" : "12px",
     borderRadius: "8px",
     marginBottom: "20px",
     border: "1px solid rgba(220, 53, 69, 0.3)",
+    maxWidth: "100%",
+    wordBreak: "break-word", // Ensure long error messages don't break layout
   };
 
   const buttonStyle = {
-    padding: "12px",
+    padding: isSmallScreen ? "10px" : "12px",
     border: "none",
     borderRadius: "8px",
-    fontSize: "16px",
+    fontSize: isVerySmallScreen ? "0.9rem" : "1rem",
     cursor: "pointer",
     transition: "0.3s",
     fontWeight: "bold",
     width: "100%",
     marginTop: "10px",
+    touchAction: "manipulation", // Better touch behavior
+  };
+
+  const withdrawButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: "#28a745",
+    color: "white",
+    width: isSmallScreen ? "100%" : "auto",
+    padding: isSmallScreen ? "10px" : "12px 20px",
+    maxWidth: isSmallScreen ? "300px" : "none",
+    margin: isSmallScreen ? "0 auto" : "0",
   };
 
   return (
@@ -273,6 +300,7 @@ const AuctionList = () => {
               backgroundColor: "#007bff",
               color: "white",
               marginTop: "10px",
+              maxWidth: isSmallScreen ? "200px" : "none",
             }}
           >
             Retry
@@ -292,7 +320,14 @@ const AuctionList = () => {
           {auctions.map((auction) => (
             <div key={auction.id} style={cardStyle}>
               <div>
-                <h3 style={{ marginTop: "0" }}>{auction.name}</h3>
+                <h3
+                  style={{
+                    marginTop: "0",
+                    fontSize: isVerySmallScreen ? "1.2rem" : "1.5rem",
+                  }}
+                >
+                  {auction.name}
+                </h3>
                 <p>{auction.description}</p>
                 <p>
                   <strong>Starting Price:</strong> {auction.startingPrice} ETH
@@ -344,17 +379,17 @@ const AuctionList = () => {
         </div>
       )}
 
-      <hr style={{ margin: "30px 0", borderColor: "#333" }} />
+      <hr
+        style={{
+          margin: isSmallScreen ? "20px 0" : "30px 0",
+          borderColor: "#333",
+        }}
+      />
+
       <h2 style={titleStyle}>Account Actions</h2>
       <button
         onClick={handleWithdrawFunds}
-        style={{
-          ...buttonStyle,
-          backgroundColor: "#28a745",
-          color: "white",
-          width: "auto",
-          padding: "12px 20px",
-        }}
+        style={withdrawButtonStyle}
         onMouseOver={(e) => (e.target.style.backgroundColor = "#218838")}
         onMouseOut={(e) => (e.target.style.backgroundColor = "#28a745")}
       >
