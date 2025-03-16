@@ -14,14 +14,14 @@ const Navbar = () => {
     <nav
       style={{
         backgroundColor: "#007bff",
-        padding: "15px 20px",
+        padding: "15px 25px",
         color: "white",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
         position: "fixed",
         top: 0,
-        width: "100%",
+        width: "97%",
         boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
         zIndex: 50,
       }}
@@ -121,15 +121,14 @@ const Navbar = () => {
         }
         
         .mobile-connect-button {
-          padding: 10px 15px;
+          padding: 10px 35px;
           background-color: white;
           color: #007bff;
           border: none;
           border-radius: 8px;
           font-weight: bold;
           cursor: pointer;
-          margin: 5px;
-          width: 90%;
+          width: 95%;
           box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
         }
         
@@ -173,7 +172,7 @@ const Navbar = () => {
             right: 0;
             left: 0;
             background-color: #007bff;
-            padding: 10px;
+            padding: 30px;
             box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
             z-index: 49;
             align-items: center;
