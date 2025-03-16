@@ -364,9 +364,13 @@ const AuctionList = () => {
                     onMouseOver={(e) =>
                       (e.target.style.backgroundColor = "#0056b3")
                     }
+                    onFocus={(e) =>
+                      (e.target.style.backgroundColor = "#0056b3")
+                    }
                     onMouseOut={(e) =>
                       (e.target.style.backgroundColor = "#007bff")
                     }
+                    onBlur={(e) => (e.target.style.backgroundColor = "#007bff")}
                   >
                     Place Bid
                   </button>
@@ -378,6 +382,9 @@ const AuctionList = () => {
                       color: "white",
                     }}
                     onMouseOver={(e) =>
+                      (e.target.style.backgroundColor = "#c82333")
+                    }
+                    onFocus={(e) =>
                       (e.target.style.backgroundColor = "#c82333")
                     }
                     onMouseOut={(e) =>

@@ -26,8 +26,8 @@ export const Web3Provider = ({ children }) => {
       // Save account to localStorage
       localStorage.setItem("connectedAccount", account);
 
-      setProvider(web3Provider);
-      setSigner(signer);
+      setProvider(web3Provider); //safaridaofaucet.vercel.app/
+      https: setSigner(signer);
       setAccount(account);
     } catch (err) {
       console.error("Wallet connection error:", err);
